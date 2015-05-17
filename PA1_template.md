@@ -1,10 +1,9 @@
-# Reproducible Research Peer Assessment 1  
-
-(May 16, 2015)  
-
+# Reproducible Research: Peer Assessment 1
 
 This document will outline the steps and output for completion of Peer Assignment 1 from the Coursera Reproducible Research Course.  The assignment relies on a data set detailing the number of steps, measured in five-minute intervals, across several days.  
-  
+
+## Loading and preprocessing the data
+
 The first step will be to download the file at the provided URL, and read it into the R workspace:
 
 
@@ -36,17 +35,6 @@ library(dplyr)
 library(ggplot2)
 ```
 
-Now that we have the data, let's get to work answering the questions laid out in the assignment.  
-
-### The first question we need to answer is: "What is the mean total number of steps taken per day?"  
-  
-  
-We were asked to perform the following steps:
-
-  + Calculate total steps taken each day
-  + Make a histogram of the distribution of total steps taken each day
-  + Calculate and report the mean and median of the total steps taken each day
-
 In this block of code, we will transform the *date* field into a Date object in R, and investigate any missing data in the *steps* field. 
 
 
@@ -72,7 +60,11 @@ missing_count
 ## 8 2012-11-30   288
 ```
   
-Now that we know there are 8 days with all values missing, and no days with only partially missing values, we can proceed to aggregate and summarize the data.  We will use the dplyr package to handle grouping and the calculation of summary statistics, and qplot to plot the distribution of total steps taken each day.
+Now that we know there are 8 days with all values missing, and no days with only partially missing values, let's get to work answering the questions laid out in the assignment.  
+
+## What is mean total number of steps taken per day?
+
+We will use the dplyr package to handle grouping and the calculation of summary statistics, and qplot to plot the distribution of total steps taken each day.
 
 
 ```r
@@ -88,7 +80,7 @@ h1 <- qplot(daily_steps, data=step_data_summarized, xlab="Total Steps Taken Duri
 plot(h1)
 ```
 
-![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
   
 And now we need to calculate the mean and median number of steps taken each day.
 
@@ -112,11 +104,11 @@ print(paste0("Median Total Daily Steps: ", median_steps))
 ```
   
 So the mean total steps taken across all days (rounded to two decimal places) was 10766.19, 
-and the median number of steps was 10765.
+and the median number of steps was 10765
 
-### Now we need to understand the daily pattern of steps - in other words, how the total number of steps varies throughout the day. 
-  
-  The first thing to do is use dplyr to group the data by 5-minute interval, and then calculate the average number of steps taken during each 5 minute interval across days. We will use qplot to generate a line plot of those data.
+## What is the average daily activity pattern?
+
+The first thing to do is use dplyr to group the data by 5-minute interval, and then calculate the average number of steps taken during each 5 minute interval across days. We will use qplot to generate a line plot of those data.
 
 
 ```r
@@ -129,7 +121,7 @@ qplot(interval, mean_interval_steps, data=fivemin_intervals, geom='line',
       main="Average Number of Steps Taken During 5-Minute Intervals")
 ```
 
-![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
 
   The plot suggests that, on average, there are no measured steps until after 5:00 AM. The measured steps spike around 8-9 AM, and then fluctuate throughout the remainder of the day until roughly 8:00 PM, when they start tapering off. Let's find the time associated with the actual maximum:
 
@@ -142,10 +134,10 @@ fivemin_intervals[which.max(fivemin_intervals$mean_interval_steps),]$interval
 ## [1] 835
 ```
 
-So the peak time of day for walking is 8:35 AM.  
+**The peak time of day for walking is 8:35 AM.**  
 
 
-### Our next order of business will be to impute values for the rows with missing values.
+## Imputing missing values
 
 Considering how simple the data are, we will use the mean value from each five-minute interval as the replacement data. You can test out filling the data with the mean or median value for the interval, but it turns out using the mean value is truer to the original data source.  (The median value dropped the summary statistics significantly)
 
@@ -165,7 +157,7 @@ message(paste0("There are now ",nrow(subset(step_data_meanfilled, is.na(steps)))
 ## There are now 0 rows with missing step counts in the Mean-filled data
 ```
 
-So now that we've filled in the missing values, we can plot the distribution of total steps taken each day, and compare the mean and median to the previous values.
+Now that we've filled in the missing values, we can plot the distribution of total steps taken each day, and compare the mean and median to the previous values.
 
 
 ```r
@@ -188,7 +180,7 @@ print(paste0("Median Total Daily Steps After Imputing Missing Data: ", filled_me
 ## [1] "Median Total Daily Steps After Imputing Missing Data: 10766.19"
 ```
 
-  So the mean total step-count was 10766.19, and after filling in missing data, it is 10766.19.
+  The mean total step-count was 10766.19, and after filling in missing data, it is 10766.19.
 
   The median value was originally 10765, and after filling in missing data, it is still 10766.19.
 
@@ -209,12 +201,12 @@ multiplot(h2 + scale_x_continuous(limits = c(0, 24000)) + scale_y_continuous(lim
           h1 + scale_x_continuous(limits = c(0,24000)) + scale_y_continuous(limits=c(0,15)), cols=1)
 ```
 
-![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
 
   The only change in the plot is an increase in the number of days at the mean value of total steps, 10766.  This increases the bin for data between 10,000-11,000.  
 
 
-### Analyze the Change in Measured Steps between Weekdays and Weekends
+## Are there differences in activity patterns between weekdays and weekends?
 
 In the final part of the analysis, we are asked to compare the distribution of the total number of steps between weekdays and the weekend. 
 
@@ -227,15 +219,15 @@ The first thing we'll need to do is create a new column in the data designating 
 weekend_parser <- function(day) { ifelse(day %in% c("Saturday","Sunday"),"weekend","weekday")}
 
 # And now we add the day-of-week column and convert it to our desired output. 
-step_data_filled <- step_data_filled %>% mutate(day_of_week = weekdays(date))
-step_data_filled <- step_data_filled %>% mutate_each(funs(weekend_parser), day_of_week)
+step_data_meanfilled <- step_data_meanfilled %>% mutate(day_of_week = weekdays(date))
+step_data_meanfilled <- step_data_meanfilled %>% mutate_each(funs(weekend_parser), day_of_week)
 ```
 
 The final step will then be to aggregate data by whether they corresponds to "weekday" or "weekend", and then plot a histogram.
 
 
 ```r
-fivemin_intervals_weeksplit <- step_data_filled %>% group_by(day_of_week, interval) %>% 
+fivemin_intervals_weeksplit <- step_data_meanfilled %>% group_by(day_of_week, interval) %>% 
   summarize(mean_interval_steps = mean(steps, na.rm=T))
 
 qplot(interval, mean_interval_steps, data=fivemin_intervals_weeksplit, geom='line', 
@@ -243,12 +235,10 @@ qplot(interval, mean_interval_steps, data=fivemin_intervals_weeksplit, geom='lin
     facet_wrap(~day_of_week, ncol=1) 
 ```
 
-![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
 
 It appears from the two plots that the peak at 8:35 AM on weekdays does not exist on the weekend.  Perhaps it corresponds to a larger number of people walking to work in a city, which would explain the relative drop during the 9-5 workday.  On the weekends, there is a much more consistent spread of steps throughout the day, which may be because more people are outside and fewer are at work between 9-5. 
 
 
 That's all the for the assignment, thanks for reading and reviewing!
-
-
 
